@@ -58,19 +58,17 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 {
-	uintptr_t *ebpp = (uintptr_t*) read_ebp(); //cast ebp as a pointer
+	uintptr_t *ebp = (uintptr_t*) read_ebp(); //cast ebp as a pointer
 	uintptr_t *eip;
 	uint32_t bytes_fn_start;
 
-	char *func_name = "";
-	
 	struct Eipdebuginfo info;
 		
 	cprintf("Stack backtrace:\n");
-
-	while (ebpp != 0) {
-		eip = ebpp + 1;	   //eip is stored after ebp
-		cprintf("ebp %x eip %x args ", ebpp, *(eip));
+	
+	while (ebp != 0) {
+		eip = ebp + 1;	   //eip is stored after ebp
+		cprintf("ebp %x eip %x args ", ebp, *eip);
 
 		size_t arg_num;
 		//print arguments stored after instruction pointer
@@ -80,18 +78,15 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 
 		debuginfo_eip(*eip, &info);
 
-		strcpy(func_name, info.eip_fn_name);
-		func_name[info.eip_fn_namelen] = '\0';
-
 		//calculate number of bytes between ret address and address
 		//at the start of the function
-		bytes_fn_start = *(eip) - info.eip_fn_addr;
-
-		cprintf("\n\t%s:%d %s+%d\n",
-		       info.eip_file, info.eip_line, func_name, bytes_fn_start);
+		bytes_fn_start = *eip - info.eip_fn_addr;
+		cprintf("\n\t%s:%d: %.*s+%d\n",
+		       	info.eip_file, info.eip_line, info.eip_fn_namelen, 
+			info.eip_fn_name, bytes_fn_start);
 
 		//iterate through the value stored in ebp
-		ebpp = (uintptr_t*) *ebpp;
+		ebp = (uintptr_t*) *ebp;
 	}
 	return 0;
 }
