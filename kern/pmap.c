@@ -256,14 +256,16 @@ page_init(void)
 	//first page marked as used
 	pages[0].pp_ref = 1;
 
-	for (i = 1; i < npages; i++) {
-		if ( i < io_p_mem_page || i > ba_pgnum) {
+	for (i = 1; i < io_p_mem_page; i++) {
 			pages[i].pp_ref = 0;
 			pages[i].pp_link = page_free_list;
 			page_free_list = &pages[i];
-		} else {
-			pages[i].pp_ref = 1;
-		}
+	}
+		
+	for (i = ba_pgnum; i < npages; i++) {	
+			pages[i].pp_ref = 0;
+			pages[i].pp_link = page_free_list;
+			page_free_list = &pages[i];
 	}
 }
 
