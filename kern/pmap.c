@@ -33,7 +33,7 @@ static void
 i386_detect_memory(void)
 {
 	size_t basemem, extmem, ext16mem, totalmem;
-
+	//EIP=f0100f27
 	// Use CMOS calls to measure available base & extended memory.
 	// (CMOS calls return results in kilobytes.)
 	basemem = nvram_read(NVRAM_BASELO);
@@ -97,7 +97,7 @@ boot_alloc(uint32_t n)
 		nextfree = ROUNDUP((char *) end, PGSIZE);
 	}
 	
-	if (((npages * PGSIZE) - PADDR(nextfree)) < n){
+	if (((4 * 1024 * 1024) - PADDR(nextfree)) < n){
 		panic("Error at boot_alloc(), out of memory!\n");
 	}
 	// Allocate a chunk large enough to hold 'n' bytes, then update
@@ -173,7 +173,6 @@ mem_init(void)
 	check_page_free_list(1);
 	check_page_alloc();
 	check_page();
-
 	//////////////////////////////////////////////////////////////////////
 	// Now we set up virtual memory
 
@@ -349,8 +348,28 @@ page_decref(struct PageInfo* pp)
 pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
-	// Fill this function in
-	return NULL;
+	pde_t pde = pgdir[PDX(va)];	
+	pte_t *pte;
+
+	if ((pde & PTE_P) != PTE_P) {
+		if (create == false) {
+			return NULL;		
+		}
+
+		struct PageInfo *pp = page_alloc(ALLOC_ZERO);
+
+		if (pp == NULL) {
+			return NULL;
+		}
+
+		pgdir[PDX(va)] = page2pa(pp) | PTE_P | PTE_W | PTE_U; 
+		pp->pp_ref++;		
+		pte = page2kva(pp);
+	} else {
+		pte = KADDR(PTE_ADDR(pde)); 
+	}
+
+	return &pte[PTX(va)];
 }
 
 //
@@ -367,7 +386,8 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
-	// Fill this function in
+	pte_t *pte = pgdir_walk(pgdir, (uintptr_t*) va, false);	
+	// TODO pgdirwolk pre pa-> pa + size
 }
 
 //
