@@ -189,7 +189,7 @@ env_setup_vm(struct Env *e)
 	p->pp_ref++;
 	e->env_pgdir = (pde_t*)page2kva(p);                         
 	memcpy(&e->env_pgdir[PDX(UTOP)], &kern_pgdir[PDX(UTOP)],
-		(NPDENTRIES - PDX(UTOP)) * 4);
+		(NPDENTRIES - PDX(UTOP)) * sizeof(struct Env));
 
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R
@@ -351,7 +351,7 @@ load_icode(struct Env *e, uint8_t *binary)
 	// LAB 3: Your code here.
 	
 	struct Elf *elf = (struct Elf*)binary;
-
+	
 	if (elf->e_magic != ELF_MAGIC)
 		panic("elf->e_magic != ELF_MAGIC at load_icode");
 
@@ -369,7 +369,9 @@ load_icode(struct Env *e, uint8_t *binary)
 				binary + ph->p_offset, ph->p_filesz);
 		}
 	}
+
 	lcr3(PADDR(kern_pgdir));
+
 	e->env_tf.tf_eip = elf->e_entry;
 	region_alloc(e, (void*)(USTACKTOP - PGSIZE), PGSIZE);
 }
@@ -386,6 +388,7 @@ env_create(uint8_t *binary, enum EnvType type)
 {
 	struct Env *e;
 	int check_mem = env_alloc(&e, 0);
+
 	if (check_mem == -E_NO_FREE_ENV) {
 		cprintf("%e\n", E_NO_FREE_ENV);
 	}

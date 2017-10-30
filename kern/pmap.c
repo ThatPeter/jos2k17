@@ -589,9 +589,34 @@ user_mem_check(struct Env *env, const void *va, size_t len, int perm)
 {
 	// LAB 3: Your code here.
 
+	if (ROUNDUP((uintptr_t)va + len, PGSIZE) > ULIM) {
+		user_mem_check_addr = (uintptr_t)va;
+		return -E_FAULT;
+	}
+
+	uintptr_t fault_addr = ROUNDDOWN((uintptr_t)va, PGSIZE);
+	size_t end = ROUNDUP(len, PGSIZE)/PGSIZE;
+	
+	pte_t *pte;
+	pde_t pde;
+
+	size_t i;
+
+	for(i = 0; i < end; i++, fault_addr+= PGSIZE){
+     		pde = env->env_pgdir[PDX(va)+i];
+		pte = KADDR(PTE_ADDR(pde));
+
+		if ((pte[PTX(va)] & (perm | PTE_P)) != (perm | PTE_P)) {
+			if (i==0) 
+				user_mem_check_addr = (uintptr_t)va;
+			else 
+				user_mem_check_addr = fault_addr;
+			return -E_FAULT;	
+		}
+	}
+	
 	return 0;
 }
-
 //
 // Checks that environment 'env' is allowed to access the range
 // of memory [va, va+len) with permissions 'perm | PTE_U | PTE_P'.

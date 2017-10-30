@@ -46,10 +46,44 @@
 /*
  * Lab 3: Your code here for generating entry points for the different traps.
  */
-
-
-
+TRAPHANDLER_NOEC(TH_DIVIDE, 0)
+TRAPHANDLER_NOEC(TH_DEBUG, 1)
+TRAPHANDLER_NOEC(TH_NMI, 2)
+TRAPHANDLER_NOEC(TH_BRKPT, 3)
+TRAPHANDLER_NOEC(TH_OFLOW, 4)
+TRAPHANDLER_NOEC(TH_BOUND, 5)
+TRAPHANDLER_NOEC(TH_ILLOP, 6)
+TRAPHANDLER_NOEC(TH_DEVICE, 7)
+TRAPHANDLER(TH_DBLFLT, 8)
+//TRAPHANDLER_NOEC(TH_COPROC, 9)
+TRAPHANDLER(TH_TSS, 10)
+TRAPHANDLER(TH_SEGNP, 11)
+TRAPHANDLER(TH_STACK, 12)
+TRAPHANDLER(TH_GPFLT, 13)
+TRAPHANDLER(TH_PGFLT, 14)
+//TRAPHANDLER_NOEC(TH_RES, 15)
+TRAPHANDLER_NOEC(TH_FPERR, 16)
+TRAPHANDLER(TH_ALIGN, 17)
+TRAPHANDLER_NOEC(TH_MCHK, 18)
+TRAPHANDLER_NOEC(TH_SIMDERR, 19)
+TRAPHANDLER_NOEC(TH_SYSCALL, 48)
 /*
  * Lab 3: Your code here for _alltraps
  */
+
+.text
+_alltraps:
+	//push vals to make the stack look like TrapFrame
+	pushl %ds
+	pushl %es
+	pushal
+	// load GD_KD into ds and es
+	mov $GD_KD,%eax
+	mov %ax,%ds //es and ds are 16 bit
+	mov %ax,%es
+	//pushl esp to pass a pointer to the trapframe as an arg to trap()
+	pushl %esp
+	//call trap 
+	call trap
+	
 
