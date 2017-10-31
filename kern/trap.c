@@ -170,7 +170,7 @@ trap_dispatch(struct Trapframe *tf)
 		panic("tf->tf_trapno == T_BRKPT\n");
 		return;
 	} else if (tf->tf_trapno == T_SYSCALL) {
-		curenv->env_tf.tf_regs.reg_eax = syscall(
+		tf->tf_regs.reg_eax = syscall(
 			tf->tf_regs.reg_eax, tf->tf_regs.reg_edx,
 			tf->tf_regs.reg_ecx, tf->tf_regs.reg_ebx,
 			tf->tf_regs.reg_edi, tf->tf_regs.reg_esi);

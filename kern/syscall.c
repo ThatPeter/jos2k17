@@ -76,16 +76,15 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 	switch (syscallno) {
 		case SYS_cputs:
 			sys_cputs((char*)a1, a2);
-			return SYS_cputs;
+			return 0;
 		case SYS_cgetc:
-			sys_cgetc();
-			return SYS_cgetc;
+			return sys_cgetc();
 		case SYS_getenvid:
 			return sys_getenvid();
-			//return SYS_getenvid;
+			
 		case SYS_env_destroy:
 			return sys_env_destroy(curenv->env_id);
-			//return SYS_env_destroy;
+			
 		default:
 			return -E_INVAL;
 	}
