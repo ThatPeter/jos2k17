@@ -334,9 +334,17 @@ page_init(void)
 	//int ext_p_mem_page = PGNUM(EXTPHYSMEM);
 	int ba_pgnum = PGNUM(PADDR(boot_alloc(0)));
 	//first page marked as used
+	int mpentry_pgnum = PGNUM(MPENTRY_PADDR);
 	pages[0].pp_ref = 1;
+	pages[mpentry_pgnum].pp_ref = 1;
 
-	for (i = 1; i < io_p_mem_page; i++) {
+	for (i = 1; i < mpentry_pgnum; i++) {
+		pages[i].pp_ref = 0;
+		pages[i].pp_link = page_free_list;
+		page_free_list = &pages[i];
+	}	
+
+	for (i = mpentry_pgnum + 1; i < io_p_mem_page; i++) {
 		pages[i].pp_ref = 0;
 		pages[i].pp_link = page_free_list;
 		page_free_list = &pages[i];
@@ -474,7 +482,7 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 	size_t i;
 	for (i = 0; i < size; i += PGSIZE) {
 		pte_t *pte = pgdir_walk(pgdir, (uintptr_t*) (va + i), true);
-		*pte = (pa + i)| PTE_P | perm;	
+		*pte = (pa + i) | PTE_P | perm;	
 	}
 }
 
@@ -607,7 +615,7 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// value will be preserved between calls to mmio_map_region
 	// (just like nextfree in boot_alloc).
 	static uintptr_t base = MMIOBASE;
-
+	
 	// Reserve size bytes of virtual memory starting at base and
 	// map physical pages [pa,pa+size) to virtual addresses
 	// [base,base+size).  Since this is device memory and not
@@ -626,7 +634,18 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	panic("mmio_map_region not implemented");
+	size = ROUNDUP(size, PGSIZE);
+
+	if (ROUNDUP((base + size), PGSIZE) > MMIOLIM) {
+		panic("(base + size) > MMIOLIM!\n");
+	}
+
+	boot_map_region(kern_pgdir, base, size, pa, PTE_PCD | PTE_PWT | PTE_W);
+	
+	uintptr_t cur_base = base;
+	base += size;
+
+	return (void*)cur_base;
 }
 
 static uintptr_t user_mem_check_addr;
