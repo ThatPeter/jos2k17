@@ -228,6 +228,9 @@ mem_init(void)
 	// Your code goes here:
 	boot_map_region(kern_pgdir, KSTACKTOP - KSTKSIZE, KSTKSIZE, 
 			PADDR(bootstack), PTE_W);
+	
+	//boot_map_region(kern_pgdir, KSTACKTOP - PTSIZE, KSTACKTOP - PTSIZE + KTSKSIZE, 
+			//PADDR(bootstack), PTE_W);
 	//////////////////////////////////////////////////////////////////////
 	// Map all of physical memory at KERNBASE.
 	// Ie.  the VA range [KERNBASE, 2^32) should map to
@@ -287,6 +290,17 @@ mem_init_mp(void)
 	//     Permissions: kernel RW, user NONE
 	//
 	// LAB 4: Your code here:
+	//
+
+	size_t i;
+	for (i = 0; i < NCPU; i++) {
+		uintptr_t kstacktop_i = KSTACKTOP - i * (KSTKSIZE + KSTKGAP);
+		boot_map_region(kern_pgdir, kstacktop_i - KSTKSIZE, KSTKSIZE, 
+		PADDR(percpu_kstacks[i]), PTE_W);
+
+		//boot_map_region(kern_pgdir, percpu_kerstacks[i], KSTKSIZE, 
+		//percpu_kerstacks[i], PTE_W);
+	}
 
 }
 
