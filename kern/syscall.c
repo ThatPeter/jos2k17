@@ -82,9 +82,30 @@ sys_exofork(void)
 	// status is set to ENV_NOT_RUNNABLE, and the register set is copied
 	// from the current environment -- but tweaked so sys_exofork
 	// will appear to return 0.
+	struct Env *new_env;
+	int env_state =	env_alloc(&new_env, sys_getenvid());
+
+	if (env_state < 0) {
+		if (env_state == -E_NO_FREE_ENV) {
+			return -E_NO_FREE_ENV;
+		}
+		if (env_state == -E_NO_MEM) {
+			return -E_NO_MEM;
+		} 
+		else {
+			panic("Unknown error while allocating environment\n");
+		}	
+	}
+
+	new_env->env_status = ENV_NOT_RUNNABLE;
+	new_env->env_tf = curenv->env_tf;
+	new_env->env_tf.tf_regs.reg_eax = 0;
+
+	return new_env->env_id;
 
 	// LAB 4: Your code here.
-	panic("sys_exofork not implemented");
+
+	//panic("sys_exofork not implemented");
 }
 
 // Set envid's env_status to status, which must be ENV_RUNNABLE
@@ -285,9 +306,28 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		case SYS_env_destroy:
 			return sys_env_destroy(curenv->env_id);
 		
+		
+
+		case SYS_page_alloc:
+			panic("este som to nezrobil v syskole\n");
+		case SYS_page_map:
+panic("este som to nezrobil v syskole\n");
+		case SYS_page_unmap:
+panic("este som to nezrobil v syskole\n");
+		case SYS_exofork:
+panic("este som to nezrobil v syskole\n");
+		case SYS_env_set_status:
+panic("este som to nezrobil v syskole\n");
+		case SYS_env_set_pgfault_upcall:
+panic("este som to nezrobil v syskole\n");
 		case SYS_yield:
 			sys_yield();
-			return 0;
+		return 0;
+
+		case SYS_ipc_try_send:
+panic("este som to nezrobil v syskole\n");
+		case SYS_ipc_recv:
+panic("este som to nezrobil v syskole\n");
 		default:
 			return -E_INVAL;
 	}
