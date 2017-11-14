@@ -29,18 +29,29 @@ sched_yield(void)
 	// below to halt the cpu.
 
 	// LAB 4: Your code here.
-	struct Env *env = curenv;
-	size_t i;	
-	for (i = 0; i < NENV; i++) {
+
+	size_t i;
+	if (!curenv) {
+		i = 0;
+	} else {
+		i = ENVX(curenv->env_id) + 1;
+	}
+		
+	for (; i < NENV; i++) {
 		if (envs[i].env_status == ENV_RUNNABLE) {
-			env_run(envs[i]);
-			curenv = envs[i];
-			return;
+			env_run(&envs[i]);
 		} 
 	}
-	if (curenv->env_status == ENV_RUNNING) {
+
+	size_t j;
+
+	for (j = 0; j < i; j++) {
+		if (envs[j].env_status == ENV_RUNNABLE) {
+			env_run(&envs[j]);
+		} 
+	}
+	if (curenv && (curenv->env_status == ENV_RUNNING)) {
 		env_run(curenv);
-		return;
 	}
 	// sched_halt never returns
 	sched_halt();

@@ -129,14 +129,16 @@ trap_init_percpu(void)
 	thiscpu->cpu_ts.ts_ss0 = GD_KD;
 	thiscpu->cpu_ts.ts_iomb = sizeof(struct Taskstate);
 
-	gdt[(GD_TSS0 + ((thiscpu->cpu_id + 1) * 8)) >> 3] = SEG16
+	uint32_t curr_cpu_gdt_index = GD_TSS0 + ((thiscpu->cpu_id + 1) * 8);
+
+	gdt[curr_cpu_gdt_index >> 3] = SEG16
 	(STS_T32A, (uint32_t) (&thiscpu->cpu_ts), sizeof(struct Taskstate) - 1, 0);
-	gdt[(GD_TSS0 + ((thiscpu->cpu_id + 1) * 8))  >> 3].sd_s = 0;
+	gdt[curr_cpu_gdt_index >> 3].sd_s = 0;
 
 	// Load the TSS selector (like other segment selectors, the
 	// bottom three bits are special; we leave them 0)
 	
-	ltr(GD_TSS0 + ((thiscpu->cpu_id + 1) * 8));
+	ltr(curr_cpu_gdt_index);
 	// Load the IDT
 	lidt(&idt_pd);
 }
