@@ -61,13 +61,12 @@ dumbfork(void)
 		thisenv = &envs[ENVX(sys_getenvid())];
 		return 0;
 	}
-
 	// We're the parent.
 	// Eagerly copy our entire address space into the child.
 	// This is NOT what you should do in your fork implementation.
 	for (addr = (uint8_t*) UTEXT; addr < end; addr += PGSIZE)
 		duppage(envid, addr);
-
+	
 	// Also copy the stack we are currently running on.
 	duppage(envid, ROUNDDOWN(&addr, PGSIZE));
 

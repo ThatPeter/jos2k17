@@ -400,10 +400,10 @@ env_create(uint8_t *binary, enum EnvType type)
 	int check_mem = env_alloc(&e, 0);
 
 	if (check_mem == -E_NO_FREE_ENV) {
-		cprintf("%e\n", E_NO_FREE_ENV);
+		panic("%e", E_NO_FREE_ENV);
 	}
 	if (e == NULL) {
-		panic("e == NULL at env_create");
+		panic("e == NULL");
 	}
 
 	e->env_type = type;

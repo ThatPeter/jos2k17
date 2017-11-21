@@ -571,7 +571,6 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 	}
 
 	return pa2page(PTE_ADDR(*pte));
-	
 }
 
 //
@@ -648,7 +647,7 @@ mmio_map_region(physaddr_t pa, size_t size)
 	// Hint: The staff solution uses boot_map_region.
 	//
 	// Your code here:
-	size = ROUNDUP(size, PGSIZE);
+	/*size = ROUNDUP(size, PGSIZE);
 
 	if (ROUNDUP((base + size), PGSIZE) > MMIOLIM) {
 		panic("(base + size) > MMIOLIM!\n");
@@ -656,10 +655,16 @@ mmio_map_region(physaddr_t pa, size_t size)
 
 	boot_map_region(kern_pgdir, base, size, pa, PTE_PCD | PTE_PWT | PTE_W);
 	
-	uintptr_t cur_base = base;
 	base += size;
 
-	return (void*)cur_base;
+	return (void*)base-size;*/
+size = ROUNDUP(pa+size, PGSIZE);
+	pa = ROUNDDOWN(pa, PGSIZE);
+	size -= pa;
+	if (base+size >= MMIOLIM) panic("not enough memory");
+	boot_map_region(kern_pgdir, base, size, pa, PTE_PCD|PTE_PWT|PTE_W);
+	base += size;
+return (void*) (base - size);
 }
 
 static uintptr_t user_mem_check_addr;

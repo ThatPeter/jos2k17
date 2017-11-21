@@ -61,9 +61,10 @@ i386_init(void)
 	ENV_CREATE(TEST, ENV_TYPE_USER);
 #else
 	// Touch all you want. Calls fork.
-	ENV_CREATE(user_primes, ENV_TYPE_USER);
-#endif // TEST*
+	//ENV_CREATE(user_primes, ENV_TYPE_USER);
+#endif // TEST* 
 	// Schedule and run the first user environment!
+
 	sched_yield();
 }
 
