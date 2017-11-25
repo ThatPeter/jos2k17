@@ -89,8 +89,8 @@ sys_exofork(void)
 		return env_state;
 	}
 
-	new_env->env_status = ENV_NOT_RUNNABLE;
 	new_env->env_tf = curenv->env_tf;
+	new_env->env_status = ENV_NOT_RUNNABLE;
 	new_env->env_tf.tf_regs.reg_eax = 0;
 
 	return new_env->env_id;

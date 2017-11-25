@@ -54,8 +54,8 @@ i386_init(void)
 	lock_kernel();
 	// Starting non-boot CPUs
 	boot_aps();
-	for(int i = 0; i < 3; i++)
-		ENV_CREATE(user_yield, ENV_TYPE_USER);
+	//for(int i = 0; i < 3; i++)
+	//	ENV_CREATE(user_yield, ENV_TYPE_USER);
 #if defined(TEST)
 	// Don't touch -- used by grading script!
 	ENV_CREATE(TEST, ENV_TYPE_USER);
