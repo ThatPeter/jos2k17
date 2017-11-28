@@ -380,7 +380,63 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_try_send not implemented");
+	struct Env *e;
+	int env = envid2env(envid, &e, false);
+	
+	if (env < 0) {
+		return perm;
+	}
+	
+	if (!e->env_ipc_recving) {
+		return -E_IPC_NOT_RECV;
+	}
+
+	e->env_ipc_value = value;
+
+	if ((uint32_t)srcva < UTOP) {
+		if (ROUNDDOWN((uint32_t)srcva,PGSIZE) != (uint32_t)srcva) {
+			return -E_INVAL;
+		}
+
+		if (((PTE_P | PTE_U) & perm) != (PTE_U | PTE_P)) { 
+			return -E_INVAL;
+		}
+	
+		int to_check = perm | PTE_P | PTE_W | PTE_U | PTE_AVAIL;
+		int available_perm = PTE_P | PTE_W | PTE_U | PTE_AVAIL;
+		// check if no other bits have been set 
+		if ((available_perm ^ to_check) != 0) {
+			return -E_INVAL;
+		}
+
+		pte_t *pte_store;
+		struct PageInfo *p = page_lookup(curenv->env_pgdir, srcva, 							 &pte_store);
+	
+		if (((perm & PTE_W) == PTE_W) && ((*pte_store & PTE_W) != 			     PTE_W)) {
+			return -E_INVAL;
+		}
+
+		if (!p) {
+			return -E_INVAL;	
+		}
+
+		if ((uint32_t)e->env_ipc_dstva < UTOP){
+			int pg_insert_check = page_insert(e->env_pgdir, p,
+	 				          e->env_ipc_dstva, perm);
+	
+			if (pg_insert_check < 0) {
+				return pg_insert_check;
+			}
+		}
+	}
+
+	e->env_ipc_recving = false;
+	e->env_ipc_from = curenv->env_id;
+	e->env_status = ENV_RUNNABLE;
+	e->env_tf.tf_regs.reg_eax = 0;
+
+	return 0;
+	//panic("sys_ipc_try_send not implemented");
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -398,7 +454,17 @@ static int
 sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_recv not implemented");
+	if ((uint32_t)dstva < UTOP) {
+		if (ROUNDDOWN((uint32_t)dstva, PGSIZE) != (uint32_t)dstva) {
+			return -E_INVAL;
+		}
+	}
+	curenv->env_ipc_recving = true;	
+	curenv->env_ipc_dstva = dstva;
+	curenv->env_status = ENV_NOT_RUNNABLE;
+
+	sys_yield();
+	//panic("sys_ipc_recv not implemented");
 	return 0;
 }
 
@@ -446,10 +512,10 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 			return 0;
 
 		case SYS_ipc_try_send:
-panic("este som to nezrobil v syskole\n");
+			return sys_ipc_try_send(a1, a2, (void*)a3, a4);
 
 		case SYS_ipc_recv:
-panic("este som to nezrobil v syskole\n");
+			return sys_ipc_recv((void*)a1);
 
 		default:
 			return -E_INVAL;
