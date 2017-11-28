@@ -15,6 +15,14 @@ libmain(int argc, char **argv)
 	// LAB 3: Your code here.
 	thisenv = 0;
 
+	envid_t cur_env_id = sys_getenvid(); 
+	size_t i;
+	for (i = 0; i < NENV; i++) {
+		if (envs[i].env_id == cur_env_id) {
+			thisenv = &envs[i];
+		}
+	}
+
 	// save the name of the program so that panic() can use it
 	if (argc > 0)
 		binaryname = argv[0];

@@ -30,6 +30,30 @@ sched_yield(void)
 
 	// LAB 4: Your code here.
 
+	size_t i;
+	if (!curenv) {
+		i = 0;
+	} else {
+		i = ENVX(curenv->env_id) + 1;
+	}
+		
+	for (; i < NENV; i++) {
+		if (envs[i].env_status == ENV_RUNNABLE) {
+			env_run(&envs[i]);
+		} 
+	}
+
+	size_t j;
+
+	for (j = 0; j < i; j++) {
+		if (envs[j].env_status == ENV_RUNNABLE) {
+			env_run(&envs[j]);
+		} 
+	}
+	if (curenv && (curenv->env_status == ENV_RUNNING)) {
+		env_run(curenv);
+	}
+
 	// sched_halt never returns
 	sched_halt();
 }
@@ -75,7 +99,7 @@ sched_halt(void)
 		"pushl $0\n"
 		"pushl $0\n"
 		// Uncomment the following line after completing exercise 13
-		//"sti\n"
+		"sti\n"
 		"1:\n"
 		"hlt\n"
 		"jmp 1b\n"

@@ -25,6 +25,7 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
+	{ "backtrace", "Display backtrace", mon_backtrace },
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -58,7 +59,37 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 {
-	// Your code here.
+	uintptr_t *ebp = (uintptr_t*) read_ebp(); //cast ebp as a pointer
+	uintptr_t *eip;
+	uint32_t bytes_fn_start;
+
+	struct Eipdebuginfo info;
+		
+	cprintf("Stack backtrace:\n");
+	
+	while (ebp != 0) {
+		eip = ebp + 1;	   //eip is stored after ebp
+		cprintf("ebp %x eip %x args ", ebp, *eip);
+
+		size_t arg_num;
+		//print arguments stored after instruction pointer
+		for (arg_num = 1; arg_num <= 5; arg_num++) {
+			cprintf("%08x ", *(eip + arg_num));
+		} 
+
+		debuginfo_eip(*eip, &info);
+
+		//calculate number of bytes between ret address and address
+		//at the start of the function
+		bytes_fn_start = *eip - info.eip_fn_addr;
+		cprintf("\n\t%s:%d: %.*s+%d\n",
+		       	info.eip_file, info.eip_line, info.eip_fn_namelen, 
+			info.eip_fn_name, bytes_fn_start);
+
+		//iterate through the value stored in ebp
+		ebp = (uintptr_t*) *ebp;
+	}
+	
 	return 0;
 }
 
