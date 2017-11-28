@@ -206,7 +206,6 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 		return -E_NO_MEM;
 	}
 
-	new_page->pp_ref++;
 	struct Env *e;
 	int retperm = envid2env(envid, &e, true);
 
@@ -300,7 +299,7 @@ sys_page_map(envid_t srcenvid, void *srcva,
 	if (!p) {
 		return -E_INVAL;	
 	}
-	//p->pp_ref++;
+	
 	int pg_insert_check = page_insert(dste->env_pgdir, p, dstva, perm);
 	
 	if (pg_insert_check == -E_NO_MEM) {

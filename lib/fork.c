@@ -25,6 +25,10 @@ pgfault(struct UTrapframe *utf)
 	//   (see <inc/memlayout.h>).
 
 	// LAB 4: Your code here.
+	
+	if ((err & FEC_WR) != FEC_WR || (uvpt[PGNUM(addr)] & PTE_COW) != PTE_COW) {
+		panic("faulting access");
+	}
 
 	// Allocate a new page, map it at a temporary location (PFTEMP),
 	// copy the data from the old page to the new page, then move the new
@@ -33,8 +37,17 @@ pgfault(struct UTrapframe *utf)
 	//   You should make three system calls.
 
 	// LAB 4: Your code here.
+	
+	r = sys_page_alloc(sys_getenvid(), PFTEMP, PTE_P | PTE_W | PTE_U);
+	if (r < 0) {
+		panic("sys page alloc failed %e", r);
+	}
+	void *page = ROUNDDOWN(addr, PGSIZE);
+	memcpy(PFTEMP, page, PGSIZE);
 
-	panic("pgfault not implemented");
+	sys_page_map(sys_getenvid(), (void*)PFTEMP, sys_getenvid(), 
+		     (void*)page, PTE_P | PTE_W | PTE_U);
+	//panic("pgfault not implemented");
 }
 
 //
@@ -54,7 +67,24 @@ duppage(envid_t envid, unsigned pn)
 	int r;
 
 	// LAB 4: Your code here.
-	panic("duppage not implemented");
+	void *addr = (void*)(pn * PGSIZE);
+	if ((uvpt[pn] & PTE_W) == PTE_W || (uvpt[pn] & PTE_COW) == PTE_COW) {
+		r = sys_page_map(sys_getenvid(), addr, envid, addr, PTE_P | PTE_U | PTE_COW);
+		if (r < 0) {
+		    	panic("sys page map fault %e");
+		}
+		r = sys_page_map(sys_getenvid(), addr, sys_getenvid(), addr, 
+		                 PTE_P | PTE_U | PTE_COW);
+		if (r < 0) {
+		    	panic("sys page map fault %e");
+		}		
+	} else { 
+		r = sys_page_map(sys_getenvid(), addr, envid, addr, PTE_P | PTE_U);
+		if (r < 0) {
+		    	panic("sys page map fault %e");
+		}
+	}
+	//panic("duppage not implemented");
 	return 0;
 }
 
@@ -78,7 +108,32 @@ envid_t
 fork(void)
 {
 	// LAB 4: Your code here.
-	panic("fork not implemented");
+	set_pgfault_handler(pgfault);
+	envid_t envid = sys_exofork();
+
+	if (envid < 0) {
+		panic("fork fault %e");
+	}
+	
+	if (!envid) {
+		thisenv = &envs[ENVX(sys_getenvid())];
+		return 0;
+	}
+
+	sys_page_alloc(envid, (void*)(UXSTACKTOP - PGSIZE), PTE_P | PTE_W |PTE_U);
+	
+	uintptr_t addr;
+	for (addr = 0; addr < UTOP - PGSIZE; addr += PGSIZE) {
+		if ((uvpd[PDX(addr)] & PTE_P) == PTE_P && (uvpt[PGNUM(addr)] & PTE_P) == PTE_P) 			duppage(envid, PGNUM(addr));
+
+	}
+	// mozno neni dobre 
+	sys_env_set_pgfault_upcall(envid, thisenv->env_pgfault_upcall);
+
+	sys_env_set_status(envid, ENV_RUNNABLE);
+	
+	return envid;
+	//panic("fork not implemented");
 }
 
 // Challenge!
