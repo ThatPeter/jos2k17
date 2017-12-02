@@ -391,8 +391,6 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 		return -E_IPC_NOT_RECV;
 	}
 
-	e->env_ipc_value = value;
-
 	if ((uint32_t)srcva < UTOP) {
 		if (ROUNDDOWN((uint32_t)srcva,PGSIZE) != (uint32_t)srcva) {
 			return -E_INVAL;
@@ -427,11 +425,14 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 			if (pg_insert_check < 0) {
 				return pg_insert_check;
 			}
+
+			e->env_ipc_perm = perm;
 		}
 	}
 
 	e->env_ipc_recving = false;
 	e->env_ipc_from = curenv->env_id;
+	e->env_ipc_value = value;
 	e->env_status = ENV_RUNNABLE;
 	e->env_tf.tf_regs.reg_eax = 0;
 

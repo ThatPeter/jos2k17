@@ -40,15 +40,15 @@ pgfault(struct UTrapframe *utf)
 
 	// LAB 4: Your code here.
 
-	r = sys_page_alloc(sys_getenvid(), PFTEMP, PTE_P | PTE_W | PTE_U);
+	r = sys_page_alloc(0, PFTEMP, PTE_P | PTE_W | PTE_U);
 	if (r < 0) {
 		panic("sys page alloc failed %e", r);
 	}
 	void *page = ROUNDDOWN(addr, PGSIZE);
 	memcpy(PFTEMP, page, PGSIZE);
 
-	sys_page_map(sys_getenvid(), (void*)PFTEMP, sys_getenvid(), 
-		     (void*)page, PTE_P | PTE_W | PTE_U);
+	sys_page_map(0, (void*)PFTEMP, 0, (void*)page, PTE_P | PTE_W | PTE_U);
+	sys_page_unmap(0, PFTEMP);
 	//panic("pgfault not implemented");
 }
 
@@ -131,7 +131,7 @@ fork(void)
 		if ((uvpd[PDX(addr)] & PTE_P) == PTE_P && (uvpt[PGNUM(addr)] & PTE_P) == PTE_P) 			duppage(envid, PGNUM(addr));
 
 	}
-	// mozno neni dobre 
+
 	sys_env_set_pgfault_upcall(envid, thisenv->env_pgfault_upcall);
 
 	sys_env_set_status(envid, ENV_RUNNABLE);

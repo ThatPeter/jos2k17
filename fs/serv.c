@@ -214,7 +214,29 @@ serve_read(envid_t envid, union Fsipc *ipc)
 		cprintf("serve_read %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
 
 	// Lab 5: Your code here:
-	return 0;
+	
+/*struct OpenFile {
+	uint32_t o_fileid;	// file id
+	struct File *o_file;	// mapped descriptor for open file
+	int o_mode;		// open mode
+	struct Fd *o_fd;	// Fd page
+};*/
+	
+	struct OpenFile *openfile;
+	int r;
+	// find the opened file
+	if ((r = openfile_lookup(envid, req->req_fileid, &openfile)) < 0) {
+		return r;
+	}
+	//read the n bytes from the offset (seek) position to the buffer
+	if ((r = file_read(openfile->o_file, ret->ret_buf, 
+	     MIN(req->req_n, sizeof ret->ret_buf), openfile->o_fd->fd_offset)) < 0) {
+		return r;
+	}	
+	//move the current seek position
+  	openfile->o_fd->fd_offset += r;
+
+	return r;
 }
 
 
