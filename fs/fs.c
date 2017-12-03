@@ -76,6 +76,7 @@ alloc_block(void)
 	if (blockno == -1) {
 		return -E_NO_DISK;
 	}
+
 	bitmap[blockno/32] ^= 1 << (blockno % 32);
 	flush_block(diskaddr(blockno));
 	
@@ -181,15 +182,15 @@ file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool all
 				return blockno;
 			}
 
-			flush_block(diskaddr(blockno));
+			//flush_block(diskaddr(blockno));
 			f->f_indirect = blockno; 
-			*ppdiskbno = (uint32_t*)diskaddr(f->f_indirect) + filebno - NDIRECT;
+			*ppdiskbno = (uint32_t*)(diskaddr(f->f_indirect) + filebno - NDIRECT);
 
 		} else {
 			return -E_NOT_FOUND;
 		}
 	}	
-
+	
 	return 0;
        	//panic("file_block_walk not implemented");
 }

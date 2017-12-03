@@ -71,18 +71,26 @@ duppage(envid_t envid, unsigned pn)
 	// LAB 4: Your code here.
 
 	void *addr = (void*)(pn * PGSIZE);
-	if ((uvpt[pn] & PTE_W) == PTE_W || (uvpt[pn] & PTE_COW) == PTE_COW) {
-		r = sys_page_map(sys_getenvid(), addr, envid, addr, PTE_P | PTE_U | PTE_COW);
+
+	if (uvpt[pn] & PTE_SHARE) {
+		r = sys_page_map(0, addr, envid, addr, uvpt[pn] & PTE_SYSCALL);
+		if (r < 0) {
+		    	panic("sys page map fault %e");
+		} 
+	}	
+
+	else if ((uvpt[pn] & PTE_W) == PTE_W || (uvpt[pn] & PTE_COW) == PTE_COW) {
+		r = sys_page_map(0, addr, envid, addr, PTE_P | PTE_U | PTE_COW);
 		if (r < 0) {
 		    	panic("sys page map fault %e");
 		}
-		r = sys_page_map(sys_getenvid(), addr, sys_getenvid(), addr, 
+		r = sys_page_map(0, addr, 0, addr, 
 		                 PTE_P | PTE_U | PTE_COW);
 		if (r < 0) {
 		    	panic("sys page map fault %e");
 		}		
 	} else { 
-		r = sys_page_map(sys_getenvid(), addr, envid, addr, PTE_P | PTE_U);
+		r = sys_page_map(0, addr, envid, addr, PTE_P | PTE_U);
 		if (r < 0) {
 		    	panic("sys page map fault %e");
 		}
@@ -128,7 +136,9 @@ fork(void)
 	
 	uintptr_t addr;
 	for (addr = 0; addr < UTOP - PGSIZE; addr += PGSIZE) {
-		if ((uvpd[PDX(addr)] & PTE_P) == PTE_P && (uvpt[PGNUM(addr)] & PTE_P) == PTE_P) 			duppage(envid, PGNUM(addr));
+		if ((uvpd[PDX(addr)] & PTE_P) == PTE_P && 
+		    (uvpt[PGNUM(addr)] & PTE_P) == PTE_P) 			
+			duppage(envid, PGNUM(addr));
 
 	}
 

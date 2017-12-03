@@ -70,18 +70,18 @@ umain(int argc, char **argv)
 	// Try writing
 	if ((r = xopen("/new-file", O_RDWR|O_CREAT)) < 0)
 		panic("serve_open /new-file: %e", r);
-
+	//////////////////////////BUG NO 1///////////////////////////////
 	if ((r = devfile.dev_write(FVA, msg, strlen(msg))) != strlen(msg))
 		panic("file_write: %e", r);
 	cprintf("file_write is good\n");
-
+	//////////////////////////BUG NO 1///////////////////////////////
 	FVA->fd_offset = 0;
 	memset(buf, 0, sizeof buf);
 	if ((r = devfile.dev_read(FVA, buf, sizeof buf)) < 0)
 		panic("file_read after file_write: %e", r);
 	if (r != strlen(msg))
 		panic("file_read after file_write returned wrong length: %d", r);
-	if (strcmp(buf, msg) != 0)
+	if (strcmp(buf, msg) != 0) 
 		panic("file_read after file_write returned wrong data");
 	cprintf("file_read after file_write is good\n");
 
@@ -97,7 +97,7 @@ umain(int argc, char **argv)
 	if (fd->fd_dev_id != 'f' || fd->fd_offset != 0 || fd->fd_omode != O_RDONLY)
 		panic("open did not fill struct Fd correctly\n");
 	cprintf("open is good\n");
-
+//////////////////////////BUG NO 2///////////////////////////////
 	// Try files with indirect blocks
 	if ((f = open("/big", O_WRONLY|O_CREAT)) < 0)
 		panic("creat /big: %e", f);
@@ -108,7 +108,7 @@ umain(int argc, char **argv)
 			panic("write /big@%d: %e", i, r);
 	}
 	close(f);
-
+	
 	if ((f = open("/big", O_RDONLY)) < 0)
 		panic("open /big: %e", f);
 	for (i = 0; i < (NDIRECT*3)*BLKSIZE; i += sizeof(buf)) {
@@ -124,5 +124,6 @@ umain(int argc, char **argv)
 	}
 	close(f);
 	cprintf("large file is good\n");
+//////////////////////////BUG NO 2///////////////////////////////
 }
 

@@ -213,15 +213,7 @@ serve_read(envid_t envid, union Fsipc *ipc)
 	if (debug)
 		cprintf("serve_read %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
 
-	// Lab 5: Your code here:
-	
-/*struct OpenFile {
-	uint32_t o_fileid;	// file id
-	struct File *o_file;	// mapped descriptor for open file
-	int o_mode;		// open mode
-	struct Fd *o_fd;	// Fd page
-};*/
-	
+	// Lab 5: Your code here:	
 	struct OpenFile *openfile;
 	int r;
 	// find the opened file
@@ -230,7 +222,7 @@ serve_read(envid_t envid, union Fsipc *ipc)
 	}
 	//read the n bytes from the offset (seek) position to the buffer
 	if ((r = file_read(openfile->o_file, ret->ret_buf, 
-	     MIN(req->req_n, sizeof ret->ret_buf), openfile->o_fd->fd_offset)) < 0) {
+	    /* MIN(*/req->req_n/*, sizeof ret->ret_buf)*/, openfile->o_fd->fd_offset)) < 0) {
 		return r;
 	}	
 	//move the current seek position
@@ -251,7 +243,22 @@ serve_write(envid_t envid, struct Fsreq_write *req)
 		cprintf("serve_write %08x %08x %08x\n", envid, req->req_fileid, req->req_n);
 
 	// LAB 5: Your code here.
-	panic("serve_write not implemented");
+	struct OpenFile *openfile;
+	int r;
+
+	if ((r = openfile_lookup(envid, req->req_fileid, &openfile)) < 0) {
+		return r;
+	}
+
+	if ((r = file_write(openfile->o_file, req->req_buf, req->req_n, 
+				openfile->o_fd->fd_offset)) < 0) {
+		return r;
+	}
+	
+	openfile->o_fd->fd_offset += r;
+	
+	return r;
+	//panic("serve_write not implemented");
 }
 
 // Stat ipc->stat.req_fileid.  Return the file's struct Stat to the
