@@ -77,7 +77,7 @@ alloc_block(void)
 		return -E_NO_DISK;
 	}
 
-	bitmap[blockno/32] ^= (1 << (blockno % 32));
+	bitmap[blockno/32] ^= 1 << (blockno % 32);
 	flush_block(diskaddr(blockno));
 	
 	return blockno;

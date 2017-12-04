@@ -66,7 +66,6 @@ again:
 			}
 			break;
 			//panic("< redirection not implemented");
-			break;
 
 		case '>':	// Output redirection
 			// Grab the filename from the argument list

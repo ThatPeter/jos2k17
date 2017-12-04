@@ -48,7 +48,6 @@ umain(int argc, char **argv)
 		n1 = read(rfd, &c1, 1);
 		n2 = read(kfd, &c2, 1);
 		
-cprintf("\nn1: %d\nn2: %d\nc1: %d\nc2: %d\n",n1,n2,c1,c2);
 		if (n1 < 0)
 			panic("reading testshell.out: %e", n1);
 		if (n2 < 0)

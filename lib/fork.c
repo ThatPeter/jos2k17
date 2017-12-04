@@ -25,9 +25,6 @@ pgfault(struct UTrapframe *utf)
 	//   (see <inc/memlayout.h>).
 
 	// LAB 4: Your code here.
-	//cprintf("FEC_WR: %d\nuvpt[PGNUM(addr)]: %x\nPTECOW: %d\n", FEC_WR, uvpt[PGNUM(addr)], PTE_COW);
-	//cprintf("addr:%x\nerr: %d\n\n", addr, err);
-	//cprintf("eip: %x\n\n", utf->utf_eip);
 	if ((err & FEC_WR) != FEC_WR || (uvpt[PGNUM(addr)] & PTE_COW) != PTE_COW) {
 		panic("faulting access");
 	}
@@ -80,7 +77,7 @@ duppage(envid_t envid, unsigned pn)
 
 	void *addr = (void*)(pn * PGSIZE);
 
-	if (uvpt[pn] & PTE_SHARE) {
+	if ((uvpt[pn] & PTE_SHARE) == PTE_SHARE) {
 		r = sys_page_map(0, addr, envid, addr, uvpt[pn] & PTE_SYSCALL);
 		if (r < 0) {
 		    	panic("sys page map fault %e");

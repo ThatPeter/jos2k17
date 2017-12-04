@@ -391,7 +391,9 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 	if (!e->env_ipc_recving) {
 		return -E_IPC_NOT_RECV;
 	}
+
 	e->env_ipc_perm = 0;
+
 	if ((uint32_t)srcva < UTOP) {
 		if (ROUNDDOWN((uint32_t)srcva,PGSIZE) != (uint32_t)srcva) {
 			return -E_INVAL;

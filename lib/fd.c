@@ -82,7 +82,6 @@ fd_lookup(int fdnum, struct Fd **fd_store)
 	}
 	fd = INDEX2FD(fdnum);
 	if (!(uvpd[PDX(fd)] & PTE_P) || !(uvpt[PGNUM(fd)] & PTE_P)) {
-cprintf("fdnum: %d\nfd: %x\nPDX(fd): %d\nuvpd[PDX(fd)]: %x\n",fdnum, fd, PDX(fd), uvpd[PDX(fd)]);
 		if (debug)
 			cprintf("[%08x] closed fd %d\n", thisenv->env_id, fdnum);
 		return -E_INVAL;
