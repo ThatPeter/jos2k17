@@ -222,7 +222,7 @@ serve_read(envid_t envid, union Fsipc *ipc)
 	}
 	//read the n bytes from the offset (seek) position to the buffer
 	if ((r = file_read(openfile->o_file, ret->ret_buf, 
-	    /* MIN(*/req->req_n/*, sizeof ret->ret_buf)*/, openfile->o_fd->fd_offset)) < 0) {
+	  MIN(req->req_n, sizeof(ret->ret_buf)), openfile->o_fd->fd_offset)) < 0) {
 		return r;
 	}	
 	//move the current seek position

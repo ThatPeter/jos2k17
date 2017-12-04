@@ -25,8 +25,9 @@ pgfault(struct UTrapframe *utf)
 	//   (see <inc/memlayout.h>).
 
 	// LAB 4: Your code here.
-
-	
+	//cprintf("FEC_WR: %d\nuvpt[PGNUM(addr)]: %x\nPTECOW: %d\n", FEC_WR, uvpt[PGNUM(addr)], PTE_COW);
+	//cprintf("addr:%x\nerr: %d\n\n", addr, err);
+	//cprintf("eip: %x\n\n", utf->utf_eip);
 	if ((err & FEC_WR) != FEC_WR || (uvpt[PGNUM(addr)] & PTE_COW) != PTE_COW) {
 		panic("faulting access");
 	}
@@ -44,12 +45,19 @@ pgfault(struct UTrapframe *utf)
 	if (r < 0) {
 		panic("sys page alloc failed %e", r);
 	}
-	void *page = ROUNDDOWN(addr, PGSIZE);
-	memcpy(PFTEMP, page, PGSIZE);
+	addr = ROUNDDOWN(addr, PGSIZE);
+	memcpy(PFTEMP, addr, PGSIZE);
 
-	sys_page_map(0, (void*)PFTEMP, 0, (void*)page, PTE_P | PTE_W | PTE_U);
-	sys_page_unmap(0, PFTEMP);
+	r = sys_page_map(0, (void*)PFTEMP, 0, addr, PTE_P | PTE_W | PTE_U);
+	if (r < 0) {
+		panic("sys page alloc failed %e", r);
+	}
+	r = sys_page_unmap(0, PFTEMP);
+	if (r < 0) {
+		panic("sys page alloc failed %e", r);
+	}
 	//panic("pgfault not implemented");
+	return;
 }
 
 //

@@ -93,7 +93,7 @@ flush_block(void *addr)
 
 	if(va_is_dirty(addr) && va_is_mapped(addr)) {
 		ide_write(blockno * BLKSECTS, addr, BLKSECTS);
-		sys_page_map(0, addr, 0, addr, PTE_SYSCALL);
+		sys_page_map(0, addr, 0, addr, uvpt[PGNUM(addr)] & PTE_SYSCALL);
 	}
 	//panic("flush_block not implemented");
 }

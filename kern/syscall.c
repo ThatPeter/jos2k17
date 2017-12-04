@@ -380,6 +380,7 @@ static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
+/*
 	struct Env *e;
 	int env = envid2env(envid, &e, false);
 	
@@ -436,8 +437,32 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 	e->env_status = ENV_RUNNABLE;
 	e->env_tf.tf_regs.reg_eax = 0;
 
-	return 0;
+	return 0;*/
+
 	//panic("sys_ipc_try_send not implemented");
+struct Env *e;
+	int ret = envid2env(envid, &e, 0);
+	if (ret) return ret;//bad env
+	if (!e->env_ipc_recving) return -E_IPC_NOT_RECV;
+	if (srcva < (void*)UTOP) {
+		pte_t *pte;
+		struct PageInfo *pg = page_lookup(curenv->env_pgdir, srcva, &pte);
+		if (!pg) return -E_INVAL;
+		if ((*pte & perm & 7) != (perm & 7)) return -E_INVAL;
+		if ((perm & PTE_W) && !(*pte & PTE_W)) return -E_INVAL;
+		if (srcva != ROUNDDOWN(srcva, PGSIZE)) return -E_INVAL;
+		if (e->env_ipc_dstva < (void*)UTOP) {
+			ret = page_insert(e->env_pgdir, pg, e->env_ipc_dstva, perm);
+			if (ret) return ret;
+			e->env_ipc_perm = perm;
+		}
+	}
+	e->env_ipc_recving = 0;
+	e->env_ipc_from = curenv->env_id;
+	e->env_ipc_value = value; 
+	e->env_status = ENV_RUNNABLE;
+	e->env_tf.tf_regs.reg_eax = 0;
+	return 0;
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -487,6 +512,7 @@ sys_env_set_trapframe(envid_t envid, struct Trapframe *tf)
 	e->env_tf = *tf;
 	e->env_tf.tf_eflags |= FL_IF;
 	e->env_tf.tf_cs = GD_UT | 3;
+	//shoutout to fgt(x)
 	e->env_tf.tf_eflags &= ~FL_IOPL_3;
 
 	return 0;

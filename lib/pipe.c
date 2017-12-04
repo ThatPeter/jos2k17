@@ -47,6 +47,7 @@ pipe(int pfd[2])
 		goto err2;
 	if ((r = sys_page_map(0, va, 0, fd2data(fd1), PTE_P|PTE_W|PTE_U|PTE_SHARE)) < 0)
 		goto err3;
+	
 
 	// set up fd structures
 	fd0->fd_dev_id = devpipe.dev_id;
@@ -60,6 +61,7 @@ pipe(int pfd[2])
 
 	pfd[0] = fd2num(fd0);
 	pfd[1] = fd2num(fd1);
+
 	return 0;
 
     err3:

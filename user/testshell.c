@@ -20,7 +20,7 @@ umain(int argc, char **argv)
 	if ((wfd = pipe(pfds)) < 0)
 		panic("pipe: %e", wfd);
 	wfd = pfds[1];
-
+	
 	cprintf("running sh -x < testshell.sh | cat\n");
 	if ((r = fork()) < 0)
 		panic("fork: %e", r);
@@ -47,6 +47,8 @@ umain(int argc, char **argv)
 	for (off=0;; off++) {
 		n1 = read(rfd, &c1, 1);
 		n2 = read(kfd, &c2, 1);
+		
+cprintf("\nn1: %d\nn2: %d\nc1: %d\nc2: %d\n",n1,n2,c1,c2);
 		if (n1 < 0)
 			panic("reading testshell.out: %e", n1);
 		if (n2 < 0)

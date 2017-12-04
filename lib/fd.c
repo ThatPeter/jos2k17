@@ -75,13 +75,14 @@ fd_lookup(int fdnum, struct Fd **fd_store)
 {
 	struct Fd *fd;
 
-	if (fdnum < 0 || fdnum >= MAXFD) {
+	if (fdnum < 0 || fdnum >= MAXFD) {cprintf("SOMTULMAO prvyif\n");
 		if (debug)
 			cprintf("[%08x] bad fd %d\n", thisenv->env_id, fdnum);
 		return -E_INVAL;
 	}
 	fd = INDEX2FD(fdnum);
 	if (!(uvpd[PDX(fd)] & PTE_P) || !(uvpt[PGNUM(fd)] & PTE_P)) {
+cprintf("fdnum: %d\nfd: %x\nPDX(fd): %d\nuvpd[PDX(fd)]: %x\n",fdnum, fd, PDX(fd), uvpd[PDX(fd)]);
 		if (debug)
 			cprintf("[%08x] closed fd %d\n", thisenv->env_id, fdnum);
 		return -E_INVAL;
@@ -206,7 +207,7 @@ read(int fdnum, void *buf, size_t n)
 	int r;
 	struct Dev *dev;
 	struct Fd *fd;
-
+		// DEV LOOKUP MI VRACIA -3 HALP
 	if ((r = fd_lookup(fdnum, &fd)) < 0
 	    || (r = dev_lookup(fd->fd_dev_id, &dev)) < 0)
 		return r;
@@ -216,6 +217,7 @@ read(int fdnum, void *buf, size_t n)
 	}
 	if (!dev->dev_read)
 		return -E_NOT_SUPP;
+
 	return (*dev->dev_read)(fd, buf, n);
 }
 
