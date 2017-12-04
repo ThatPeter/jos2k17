@@ -306,9 +306,9 @@ copy_shared_pages(envid_t child)
 	int r;
 	
 	for (i = 0; i != UTOP; i += PGSIZE) {
-		if (((uvpd[PDX(i)] & PTE_P) == PTE_P) && ((uvpt[i / PGSIZE] & PTE_P) == PTE_P) &&
-			((uvpt[i / PGSIZE] & PTE_SHARE) == PTE_SHARE)) {
-			r = sys_page_map(0, (void*)i, child, (void*)i, uvpt[i/PGSIZE]&PTE_SYSCALL);
+		if (((uvpd[PDX(i)] & PTE_P) == PTE_P) && ((uvpt[PGNUM(i)] & PTE_P) == PTE_P) &&
+			((uvpt[PGNUM(i)] & PTE_SHARE) == PTE_SHARE)) {
+			r = sys_page_map(0, (void*)i, child, (void*)i, uvpt[PGNUM(i)]&PTE_SYSCALL);
 			if (r < 0) {
 				return r;
 			}
