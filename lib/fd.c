@@ -75,7 +75,7 @@ fd_lookup(int fdnum, struct Fd **fd_store)
 {
 	struct Fd *fd;
 
-	if (fdnum < 0 || fdnum >= MAXFD) {cprintf("SOMTULMAO prvyif\n");
+	if (fdnum < 0 || fdnum >= MAXFD) {
 		if (debug)
 			cprintf("[%08x] bad fd %d\n", thisenv->env_id, fdnum);
 		return -E_INVAL;
